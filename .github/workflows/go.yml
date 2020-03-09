@@ -2,8 +2,8 @@ name: Go
 on:
   - push
 jobs:
-  test:
-    name: Test
+  build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,13 +21,12 @@ jobs:
           go-version: 1.14
       - name: Build
         run: |
-          mkdir /build
           export GOPATH=~/.cache
           cd ./cmd
-          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GO111MODULE=on go build -o /build/douyu .
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GO111MODULE=on go build -o ./build/douyu .
           cd ../..
       - name: Upload
         uses: actions/upload-artifact@v1
         with:
           name: douyu
-          path: /build
+          path: ./build
