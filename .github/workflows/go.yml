@@ -23,7 +23,7 @@ jobs:
         run: |
           export GOPATH=~/.cache
           cd ./cmd
-          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GO111MODULE=on go build -o ./build/douyu .
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GO111MODULE=on go build -o ../build/douyu .
           cd ..
       - name: Upload
         uses: actions/upload-artifact@v1
