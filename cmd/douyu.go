@@ -13,8 +13,11 @@ import (
 )
 
 var (
-	r string
-	l int64
+	R string // 房间号
+	L int64  // 弹幕屏蔽等级
+	M bool   // 显示弹幕
+	G bool   // 显示礼物
+	H bool   // 帮助
 )
 
 func init() {
@@ -30,25 +33,27 @@ func init() {
 		}),
 	))
 
-	flag.StringVar(&r, "r", "", "")
-	flag.Int64Var(&l, "l", 30, "")
+	flag.StringVar(&R, "r", "", "房间号")
+	flag.Int64Var(&L, "l", 30, "弹幕屏蔽等级")
+	flag.BoolVar(&M, "m", true, "弹幕")
+	flag.BoolVar(&G, "g", false, "礼物")
+	flag.BoolVar(&H, "h", false, "帮助")
 	flag.Parse()
 
-	if r == "" {
+	if R == "" {
+		flag.Usage()
 		os.Exit(1)
 	}
-	if l < 0 {
-		l = 0
+	if L < 0 {
+		L = 0
 	}
-	if l > 120 {
-		l = 120
+	if L > 120 {
+		L = 120
 	}
 }
 
 func main() {
-	logx.Debugf("room: %s, level: %d", r, l)
-
-	c := douyu.NewClient().SetRoomId(r)
+	c := douyu.NewClient().SetRoomId(R)
 
 	ch, _ := c.Start()
 	defer c.Close()
@@ -61,13 +66,13 @@ func main() {
 			_ = json.Unmarshal(json.MustMarshal(t), msg)
 			switch msg.Type {
 			case "chatmsg":
-				if msg.Level < dt.IntStr(l) {
+				if !M || msg.Level < dt.IntStr(L) {
 					continue
 				}
 				format := "弹幕 %" + length(msg.NN, 30) + "s |%3d| %" + length(msg.BNN, 6) + "s |%3d|: %s"
 				logx.Infof(format, msg.NN, msg.Level, msg.BNN, msg.BL, msg.Txt)
 			case "dgb":
-				if msg.BG == 0 {
+				if !G || msg.BG == 0 {
 					continue
 				}
 				format := "礼物 %" + length(msg.NN, 30) + "s |%3d| %" + length(msg.BNN, 6) + "s |%3d|: %v %d 个，共 %d 个"
