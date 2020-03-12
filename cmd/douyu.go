@@ -64,19 +64,20 @@ func main() {
 			t := <-m
 			msg := &douyu.Message{}
 			_ = json.Unmarshal(json.MustMarshal(t), msg)
+			nl := noble(msg.NL)
 			switch msg.Type {
 			case "chatmsg":
 				if !M || msg.Level < dt.IntStr(L) {
 					continue
 				}
-				format := "弹幕 %" + length(msg.NN, 30) + "s |%3d| %" + length(msg.BNN, 6) + "s |%3d|: %s"
-				logx.Infof(format, msg.NN, msg.Level, msg.BNN, msg.BL, msg.Txt)
+				format := "弹幕 %" + length(msg.NN, 30) + "s |%3d| | %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %s"
+				logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, msg.Txt)
 			case "dgb":
 				if !G || msg.BG == 0 {
 					continue
 				}
-				format := "礼物 %" + length(msg.NN, 30) + "s |%3d| %" + length(msg.BNN, 6) + "s |%3d|: %v %d 个，共 %d 个"
-				logx.Infof(format, msg.NN, msg.Level, msg.BNN, msg.BL, gift(msg.GFid), msg.GFCnt, msg.Hits)
+				format := "礼物 %" + length(msg.NN, 30) + "s |%3d| | %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %v %d 个，共 %d 个"
+				logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, gift(msg.GFid), msg.GFCnt, msg.Hits)
 			}
 		}
 	}()
@@ -93,9 +94,16 @@ func length(s string, def int64) string {
 	return strconv.FormatInt(def, 10)
 }
 
-func gift(id dt.IntStr) interface{} {
+func gift(id dt.IntStr) string {
 	if v, ok := douyu.GiftMap[int64(id)]; ok {
 		return v
 	}
-	return id
+	return strconv.FormatInt(int64(id), 10)
+}
+
+func noble(nl dt.IntStr) string {
+	if v, ok := douyu.NobleMap[int64(nl)]; ok {
+		return v
+	}
+	return ""
 }
