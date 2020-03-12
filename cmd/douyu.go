@@ -23,12 +23,11 @@ var (
 func init() {
 	logx.SetLogger(logx.NewWithWriters(
 		logx.NewConsoleWriter(logx.ConsoleWriterConfig{
-			Level: logx.DebugLevel,
+			Level: logx.InfoLevel,
 		}),
 		logx.NewFileWriter(logx.FileWriterConfig{
 			Level:    logx.DebugLevel,
 			Type:     logx.TextFileWriter,
-			NoColor:  true,
 			Filename: "danmu.log",
 		}),
 	))
@@ -63,7 +62,9 @@ func main() {
 		for {
 			t := <-m
 			msg := &douyu.Message{}
-			_ = json.Unmarshal(json.MustMarshal(t), msg)
+			bs := json.MustMarshal(t)
+			logx.Debug(string(bs))
+			_ = json.Unmarshal(bs, msg)
 			nl := noble(msg.NL)
 			switch msg.Type {
 			case "chatmsg":
