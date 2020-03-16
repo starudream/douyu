@@ -20,41 +20,41 @@ type GiftResp struct {
 }
 
 type GiftData struct {
-	Id        int64  `json:"id"`        // 礼物 pid
-	Name      string `json:"name"`      // 名称
-	Price     int64  `json:"price"`     // 价格，单位：分
-	PriceType int64  `json:"priceType"` // 金钱类型
+	Id    int64  `json:"id"`    // 礼物 pid
+	Name  string `json:"name"`  // 名称
+	Price int64  `json:"price"` // 价格，单位：分
 }
 
 var (
-	GiftMap     = map[int64]GiftData{}
-	giftDefault = GiftData{}
-	giftMu      = sync.Mutex{}
+	GiftMap = map[int64]GiftData{}
+	giftMu  = sync.Mutex{}
 )
 
 func GetGift(pid int64) GiftData {
 	if v, ok := GiftMap[pid]; ok {
 		return v
 	}
-	resp, err := http.Get(giftURL + strconv.FormatInt(pid, 10))
+	i := strconv.FormatInt(pid, 10)
+	g := GiftData{Name: i}
+	resp, err := http.Get(giftURL + i)
 	if err != nil {
 		logx.Errorf("gift: http get error: %v", err)
-		return giftDefault
+		return g
 	}
 	defer resp.Body.Close()
 	bs, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logx.Errorf("gift: read response error: %v", err)
-		return giftDefault
+		return g
 	}
 	giftResp := &GiftResp{}
 	err = json.Unmarshal(bs, giftResp)
 	if err != nil {
 		logx.Errorf("gift: json unmarshal response error: %v", err)
-		return giftDefault
+		return g
 	}
 	if giftResp.Error != 0 {
-		return giftDefault
+		return g
 	}
 	giftMu.Lock()
 	defer giftMu.Unlock()
