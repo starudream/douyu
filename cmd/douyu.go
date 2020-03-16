@@ -67,7 +67,7 @@ func main() {
 			bs := json.MustMarshal(t)
 			logx.Debug(string(bs))
 			_ = json.Unmarshal(bs, msg)
-			nl := noble(msg.NL)
+			nl := douyu.NobleMap[int64(msg.NL)]
 			switch msg.Type {
 			case "chatmsg":
 				if !M || msg.Level < dt.IntStr(L) {
@@ -96,11 +96,4 @@ func length(s string, def int64) string {
 		}
 	}
 	return strconv.FormatInt(def, 10)
-}
-
-func noble(nl dt.IntStr) string {
-	if v, ok := douyu.NobleMap[int64(nl)]; ok {
-		return v
-	}
-	return ""
 }
