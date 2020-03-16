@@ -43,6 +43,9 @@ func Decode(data []byte) map[string]string {
 	raw := string(bs)
 	m := make(map[string]string)
 	for _, v := range strings.Split(raw, "/") {
+		if len(v) == 0 {
+			continue
+		}
 		a := strings.SplitN(v, "@=", 2)
 		if len(a) == 1 {
 			m[a[0]] = ""
@@ -63,5 +66,5 @@ func DecodeRaw(data []byte) []byte {
 	if l1 != l2 || t != server2Client || data[10] != 0 || data[11] != 0 || data[len(data)-1] != 0 {
 		return nil
 	}
-	return data[12 : l1-1]
+	return data[12 : len(data)-1]
 }
