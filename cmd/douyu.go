@@ -13,11 +13,13 @@ import (
 )
 
 var (
-	R string // 房间号
-	L int64  // 弹幕屏蔽等级
-	M bool   // 显示弹幕
-	G bool   // 显示礼物
-	H bool   // 帮助
+	R  string // 房间号
+	M  bool   // 显示弹幕
+	ML int64  // 弹幕屏蔽等级
+	G  bool   // 显示礼物
+	U  bool   // 显示进入提醒
+	UL int64  // 进入提醒屏蔽等级
+	H  bool   // 帮助
 )
 
 func init() {
@@ -33,9 +35,11 @@ func init() {
 	))
 
 	flag.StringVar(&R, "r", "", "房间号")
-	flag.Int64Var(&L, "l", 30, "弹幕屏蔽等级")
 	flag.BoolVar(&M, "m", false, "弹幕")
+	flag.Int64Var(&ML, "ml", 30, "弹幕屏蔽等级")
 	flag.BoolVar(&G, "g", false, "礼物")
+	flag.BoolVar(&U, "u", false, "进入提醒")
+	flag.Int64Var(&UL, "ul", 50, "进入提醒屏蔽等级")
 	flag.BoolVar(&H, "h", false, "帮助")
 	flag.Parse()
 
@@ -43,16 +47,22 @@ func init() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	if L < 0 {
-		L = 0
+	if ML < 0 {
+		ML = 0
 	}
-	if L > 120 {
-		L = 120
+	if ML > 120 {
+		ML = 120
+	}
+	if UL < 0 {
+		UL = 0
+	}
+	if UL > 120 {
+		UL = 120
 	}
 }
 
 func main() {
-	logx.Infof("房间号：%s，弹幕屏蔽等级：%d，是否开启弹幕：%t，是否开启礼物：%t", R, L, M, G)
+	logx.Infof("房间号：%s，是否开启弹幕：%t（%d），是否开启礼物：%t，是否开启进入提醒：%t（%d）", R, M, ML, G, U, UL)
 
 	c := douyu.NewClient().SetRoomId(R)
 
@@ -70,18 +80,24 @@ func main() {
 			nl := douyu.NobleMap[int64(msg.NL)]
 			switch msg.Type {
 			case "chatmsg":
-				if !M || msg.Level < dt.IntStr(L) {
+				if !M || msg.Level < dt.IntStr(ML) {
 					continue
 				}
-				format := "弹幕 %" + length(msg.NN, 30) + "s |%3d| | %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %s"
+				format := "弹幕 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %s"
 				logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, msg.Txt)
 			case "dgb":
 				if !G || msg.BG == 0 {
 					continue
 				}
 				g := douyu.GetGift(int64(msg.Pid))
-				format := "礼物 %" + length(msg.NN, 30) + "s |%3d| | %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %v %d 个，共 %d 个"
+				format := "礼物 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %v %d 个，共 %d 个"
 				logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, g.Name, msg.GFCnt, msg.Hits)
+			case "uenter":
+				if !U || msg.Level < dt.IntStr(UL) {
+					continue
+				}
+				format := "进入 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s |"
+				logx.Infof(format, msg.NN, msg.Level, nl)
 			}
 		}
 	}()
