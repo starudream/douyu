@@ -14,9 +14,9 @@ const (
 func Encode(kv ...string) []byte {
 	sb := bytes.Buffer{}
 	for i := 0; i < len(kv); i += 2 {
-		sb.WriteString(kv[i])
+		sb.WriteString(escape(kv[i]))
 		sb.WriteString("@=")
-		sb.WriteString(kv[i+1])
+		sb.WriteString(escape(kv[i+1]))
 		sb.WriteString("/")
 	}
 	return EncodeRaw(sb.Bytes())
@@ -46,12 +46,13 @@ func Decode(data []byte) map[string]string {
 		if len(v) == 0 {
 			continue
 		}
-		a := strings.SplitN(v, "@=", 2)
-		if len(a) == 1 {
-			m[a[0]] = ""
-		} else if len(a) == 2 {
-			m[a[0]] = a[1]
+		a := strings.Split(v, "@=")
+		if len(a) != 2 {
+			continue
 		}
+		b := unescape(a[0])
+		c := unescape(a[1])
+		m[b] = c
 	}
 	return m
 }
@@ -67,4 +68,16 @@ func DecodeRaw(data []byte) []byte {
 		return nil
 	}
 	return data[12 : len(data)-1]
+}
+
+func escape(s string) string {
+	s = strings.ReplaceAll(s, "@", "@A")
+	s = strings.ReplaceAll(s, "/", "@S")
+	return s
+}
+
+func unescape(s string) string {
+	s = strings.ReplaceAll(s, "@A", "@")
+	s = strings.ReplaceAll(s, "@S", "/")
+	return s
 }
