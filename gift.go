@@ -1,17 +1,15 @@
 package douyu
 
 import (
-	"io/ioutil"
-	"net/http"
 	"strconv"
 	"sync"
 
 	"github.com/go-sdk/logx"
-	"github.com/go-sdk/utilx/json"
 )
 
 const (
-	giftURL = "https://gift.douyucdn.cn/api/prop/v1/web/single?pid="
+	giftURL1 = "https://gift.douyucdn.cn/api/gift/v2/web/list?rid="
+	giftURL2 = "https://gift.douyucdn.cn/api/prop/v1/web/single?pid="
 )
 
 type GiftResp struct {
@@ -20,44 +18,58 @@ type GiftResp struct {
 }
 
 type GiftData struct {
-	Id    int64  `json:"id"`    // 礼物 pid
-	Name  string `json:"name"`  // 名称
-	Price int64  `json:"price"` // 价格，单位：分
+	GiftList []Gift `json:"giftList"`
+	Name     string `json:"name"`
+}
+
+type Gift struct {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
 }
 
 var (
-	GiftMap = map[int64]GiftData{}
-	giftMu  = sync.Mutex{}
+	GiftMap1 = map[int64]string{}
+	GiftMap2 = map[int64]string{}
+	giftMu   = sync.Mutex{}
 )
 
-func GetGift(pid int64) GiftData {
-	if v, ok := GiftMap[pid]; ok {
-		return v
-	}
-	i := strconv.FormatInt(pid, 10)
-	g := GiftData{Name: i}
-	resp, err := http.Get(giftURL + i)
+func InitGift(rid string) {
+	giftResp := &GiftResp{}
+	err := httpGet(giftURL1+rid, giftResp)
 	if err != nil {
 		logx.Errorf("gift: http get error: %v", err)
-		return g
-	}
-	defer resp.Body.Close()
-	bs, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		logx.Errorf("gift: read response error: %v", err)
-		return g
-	}
-	giftResp := &GiftResp{}
-	err = json.Unmarshal(bs, giftResp)
-	if err != nil {
-		logx.Errorf("gift: json unmarshal response error: %v", err)
-		return g
+		return
 	}
 	if giftResp.Error != 0 {
-		return g
+		return
+	}
+	for _, gift := range giftResp.Data.GiftList {
+		GiftMap1[gift.Id] = gift.Name
+	}
+}
+
+func GetGift(id, pid int64) string {
+	if v, ok := GiftMap1[id]; ok {
+		return v
+	}
+	if v, ok := GiftMap2[pid]; ok {
+		return v
+	}
+	j := strconv.FormatInt(pid, 10)
+	giftResp := &GiftResp{}
+	err := httpGet(giftURL2+j, giftResp)
+	if err != nil {
+		logx.Errorf("gift: http get error: %v", err)
+		return j
+	}
+	if giftResp.Error != 0 {
+		return j
+	}
+	if giftResp.Data.Name == "" {
+		return j
 	}
 	giftMu.Lock()
 	defer giftMu.Unlock()
-	GiftMap[pid] = giftResp.Data
-	return giftResp.Data
+	GiftMap2[pid] = giftResp.Data.Name
+	return giftResp.Data.Name
 }

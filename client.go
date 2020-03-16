@@ -44,6 +44,8 @@ func (c *Client) Start() (chan bool, error) {
 
 	c.conn = conn
 
+	InitGift(c.rid)
+
 	go c.listen()
 	go c.keepAlive()
 

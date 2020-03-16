@@ -89,9 +89,8 @@ func main() {
 				if !G || msg.BG == 0 {
 					continue
 				}
-				g := douyu.GetGift(int64(msg.Pid))
 				format := "礼物 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %v %d 个，共 %d 个"
-				logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, g.Name, msg.GFCnt, msg.Hits)
+				logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, douyu.GetGift(int64(msg.GFid), int64(msg.Pid)), msg.GFCnt, msg.Hits)
 			case "uenter":
 				if !U || msg.Level < dt.IntStr(UL) {
 					continue
