@@ -34,12 +34,12 @@ func init() {
 
 	flag.StringVar(&R, "r", "", "房间号")
 	flag.Int64Var(&L, "l", 30, "弹幕屏蔽等级")
-	flag.BoolVar(&M, "m", true, "弹幕")
+	flag.BoolVar(&M, "m", false, "弹幕")
 	flag.BoolVar(&G, "g", false, "礼物")
 	flag.BoolVar(&H, "h", false, "帮助")
 	flag.Parse()
 
-	if R == "" {
+	if R == "" || H {
 		flag.Usage()
 		os.Exit(1)
 	}
@@ -52,6 +52,8 @@ func init() {
 }
 
 func main() {
+	logx.Infof("房间号：%s，弹幕屏蔽等级：%d，是否开启弹幕：%t，是否开启礼物：%t", R, L, M, G)
+
 	c := douyu.NewClient().SetRoomId(R)
 
 	ch, _ := c.Start()
@@ -77,8 +79,9 @@ func main() {
 				if !G || msg.BG == 0 {
 					continue
 				}
+				g := douyu.GetGift(int64(msg.Pid))
 				format := "礼物 %" + length(msg.NN, 30) + "s |%3d| | %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %v %d 个，共 %d 个"
-				logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, gift(msg.GFid), msg.GFCnt, msg.Hits)
+				logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, g.Name, msg.GFCnt, msg.Hits)
 			}
 		}
 	}()
@@ -93,13 +96,6 @@ func length(s string, def int64) string {
 		}
 	}
 	return strconv.FormatInt(def, 10)
-}
-
-func gift(id dt.IntStr) string {
-	if v, ok := douyu.GiftMap[int64(id)]; ok {
-		return v
-	}
-	return strconv.FormatInt(int64(id), 10)
 }
 
 func noble(nl dt.IntStr) string {
