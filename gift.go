@@ -66,10 +66,9 @@ func GetGift(id, pid int64) Gift {
 	if v, ok := GiftMap2[pid]; ok {
 		return v
 	}
-	j := strconv.FormatInt(pid, 10)
-	g := Gift{Name: j, Price: 0}
+	g := Gift{Name: strconv.FormatInt(pid, 10)}
 	giftResp := &GiftResp{}
-	err := httpGet(giftURL2+j, giftResp)
+	err := httpGet(giftURL2+g.Name, giftResp)
 	if err != nil {
 		logx.Errorf("gift: http get error: %v", err)
 		return g

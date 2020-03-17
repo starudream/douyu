@@ -92,7 +92,7 @@ func main() {
 					continue
 				}
 				g := douyu.GetGift(int64(msg.GFid), int64(msg.Pid))
-				if g.Price*int64(msg.Hits) <= GL*100 {
+				if g.Price*int64(msg.Hits) < GL*100 {
 					continue
 				}
 				format := "礼物 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %s %d 个，共 %d 个"
