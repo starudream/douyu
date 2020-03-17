@@ -18,18 +18,29 @@ type GiftResp struct {
 }
 
 type GiftData struct {
-	GiftList []Gift `json:"giftList"`
-	Name     string `json:"name"`
+	GiftList []GiftInfo `json:"giftList"`
+	Name     string     `json:"name"`
+	Price    int64      `json:"price"`
+}
+
+type GiftInfo struct {
+	Id        int64         `json:"id"`
+	Name      string        `json:"name"`
+	PriceInfo GiftPriceInfo `json:"priceInfo"`
+}
+
+type GiftPriceInfo struct {
+	Price int64 `json:"price"`
 }
 
 type Gift struct {
-	Id   int64  `json:"id"`
-	Name string `json:"name"`
+	Name  string `json:"name"`
+	Price int64  `json:"price"`
 }
 
 var (
-	GiftMap1 = map[int64]string{}
-	GiftMap2 = map[int64]string{}
+	GiftMap1 = map[int64]Gift{}
+	GiftMap2 = map[int64]Gift{}
 	giftMu   = sync.Mutex{}
 )
 
@@ -44,11 +55,11 @@ func InitGift(rid string) {
 		return
 	}
 	for _, gift := range giftResp.Data.GiftList {
-		GiftMap1[gift.Id] = gift.Name
+		GiftMap1[gift.Id] = Gift{Name: gift.Name, Price: gift.PriceInfo.Price}
 	}
 }
 
-func GetGift(id, pid int64) string {
+func GetGift(id, pid int64) Gift {
 	if v, ok := GiftMap1[id]; ok {
 		return v
 	}
@@ -56,20 +67,22 @@ func GetGift(id, pid int64) string {
 		return v
 	}
 	j := strconv.FormatInt(pid, 10)
+	g := Gift{Name: j, Price: 0}
 	giftResp := &GiftResp{}
 	err := httpGet(giftURL2+j, giftResp)
 	if err != nil {
 		logx.Errorf("gift: http get error: %v", err)
-		return j
+		return g
 	}
 	if giftResp.Error != 0 {
-		return j
+		return g
 	}
 	if giftResp.Data.Name == "" {
-		return j
+		return g
 	}
 	giftMu.Lock()
 	defer giftMu.Unlock()
-	GiftMap2[pid] = giftResp.Data.Name
-	return giftResp.Data.Name
+	g = Gift{Name: giftResp.Data.Name, Price: giftResp.Data.Price}
+	GiftMap2[pid] = g
+	return g
 }

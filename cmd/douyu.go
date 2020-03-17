@@ -17,6 +17,7 @@ var (
 	M  bool   // 显示弹幕
 	ML int64  // 弹幕屏蔽等级
 	G  bool   // 显示礼物
+	GL int64  // 礼物屏蔽价格
 	U  bool   // 显示进入提醒
 	UL int64  // 进入提醒屏蔽等级
 	H  bool   // 帮助
@@ -38,6 +39,7 @@ func init() {
 	flag.BoolVar(&M, "m", false, "弹幕")
 	flag.Int64Var(&ML, "ml", 30, "弹幕屏蔽等级")
 	flag.BoolVar(&G, "g", false, "礼物")
+	flag.Int64Var(&GL, "gl", 100, "礼物屏蔽价格")
 	flag.BoolVar(&U, "u", false, "进入提醒")
 	flag.Int64Var(&UL, "ul", 50, "进入提醒屏蔽等级")
 	flag.BoolVar(&H, "h", false, "帮助")
@@ -62,7 +64,7 @@ func init() {
 }
 
 func main() {
-	logx.Infof("房间号：%s，是否开启弹幕：%t（%d），是否开启礼物：%t，是否开启进入提醒：%t（%d）", R, M, ML, G, U, UL)
+	logx.Infof("房间号：%s，是否开启弹幕：%t（%d），是否开启礼物：%t（%d），是否开启进入提醒：%t（%d）", R, M, ML, G, GL, U, UL)
 
 	c := douyu.NewClient().SetRoomId(R)
 
@@ -89,8 +91,12 @@ func main() {
 				if !G || msg.BG == 0 {
 					continue
 				}
-				format := "礼物 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %v %d 个，共 %d 个"
-				logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, douyu.GetGift(int64(msg.GFid), int64(msg.Pid)), msg.GFCnt, msg.Hits)
+				g := douyu.GetGift(int64(msg.GFid), int64(msg.Pid))
+				if g.Price*int64(msg.Hits) <= GL*100 {
+					continue
+				}
+				format := "礼物 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %s %d 个，共 %d 个"
+				logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, g.Name, msg.GFCnt, msg.Hits)
 			case "uenter":
 				if !U || msg.Level < dt.IntStr(UL) {
 					continue
