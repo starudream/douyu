@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/go-sdk/logx"
 	"github.com/go-sdk/utilx/dt"
@@ -94,7 +95,7 @@ func handle(t map[string]string) {
 			return
 		}
 		format := "弹幕 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %s"
-		logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, msg.Txt)
+		logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, strings.ReplaceAll(msg.Txt, "\n", ""))
 	case "dgb":
 		if !G || msg.BG == 0 {
 			return
