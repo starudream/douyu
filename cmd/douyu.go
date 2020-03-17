@@ -75,51 +75,55 @@ func main() {
 		m := c.GetMessage()
 		for {
 			t := <-m
-			msg := &douyu.Message{}
-			bs := json.MustMarshal(t)
-			logx.Debug(string(bs))
-			_ = json.Unmarshal(bs, msg)
-			nl := douyu.NobleMap[int64(msg.NL)]
-			switch msg.Type {
-			case "chatmsg":
-				if !M || msg.Level < dt.IntStr(ML) {
-					continue
-				}
-				format := "弹幕 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %s"
-				logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, msg.Txt)
-			case "dgb":
-				if !G || msg.BG == 0 {
-					continue
-				}
-				g := douyu.GetGift(int64(msg.GFid), int64(msg.Pid))
-				if g.Price*int64(msg.Hits) < GL*100 {
-					continue
-				}
-				format := "礼物 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %s %d 个，共 %d 个"
-				logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, g.Name, msg.GFCnt, msg.Hits)
-			case "uenter":
-				if !U || msg.Level < dt.IntStr(UL) {
-					continue
-				}
-				format := "进入 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s |"
-				logx.Infof(format, msg.NN, msg.Level, nl)
-			case "rnewbc":
-				if strconv.FormatInt(int64(msg.DRid), 10) != R {
-					continue
-				}
-				format := "续费 %" + length(msg.Unk, 30) + "s |%3d| %" + length(nl, 4) + "s |"
-				logx.Infof(format, msg.Unk, msg.Level, nl)
-			case "anbc":
-				if strconv.FormatInt(int64(msg.DRid), 10) != R {
-					continue
-				}
-				format := "开通 %" + length(msg.Unk, 30) + "s |%3d| %" + length(nl, 4) + "s |"
-				logx.Infof(format, msg.Unk, msg.Level, nl)
-			}
+			go handle(t)
 		}
 	}()
 
 	<-ch
+}
+
+func handle(t map[string]string) {
+	msg := &douyu.Message{}
+	bs := json.MustMarshal(t)
+	logx.Debug(string(bs))
+	_ = json.Unmarshal(bs, msg)
+	nl := douyu.NobleMap[int64(msg.NL)]
+	switch msg.Type {
+	case "chatmsg":
+		if !M || msg.Level < dt.IntStr(ML) {
+			return
+		}
+		format := "弹幕 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %s"
+		logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, msg.Txt)
+	case "dgb":
+		if !G || msg.BG == 0 {
+			return
+		}
+		g := douyu.GetGift(int64(msg.GFid), int64(msg.Pid))
+		if g.Price*int64(msg.Hits) < GL*100 {
+			return
+		}
+		format := "礼物 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s | %" + length(msg.BNN, 6) + "s |%3d|: %s %d 个，共 %d 个"
+		logx.Infof(format, msg.NN, msg.Level, nl, msg.BNN, msg.BL, g.Name, msg.GFCnt, msg.Hits)
+	case "uenter":
+		if !U || msg.Level < dt.IntStr(UL) {
+			return
+		}
+		format := "进入 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s |"
+		logx.Infof(format, msg.NN, msg.Level, nl)
+	case "rnewbc":
+		if strconv.FormatInt(int64(msg.DRid), 10) != R {
+			return
+		}
+		format := "续费 %" + length(msg.Unk, 30) + "s |%3d| %" + length(nl, 4) + "s |"
+		logx.Infof(format, msg.Unk, msg.Level, nl)
+	case "anbc":
+		if strconv.FormatInt(int64(msg.DRid), 10) != R {
+			return
+		}
+		format := "开通 %" + length(msg.Unk, 30) + "s |%3d| %" + length(nl, 4) + "s |"
+		logx.Infof(format, msg.Unk, msg.Level, nl)
+	}
 }
 
 func length(s string, def int64) string {
