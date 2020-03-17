@@ -67,7 +67,7 @@ func DecodeRaw(data []byte) []byte {
 	if l1 != l2 || t != server2Client || data[10] != 0 || data[11] != 0 || data[len(data)-1] != 0 {
 		return nil
 	}
-	return data[12 : len(data)-1]
+	return data[12 : l1+3]
 }
 
 func escape(s string) string {
