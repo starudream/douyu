@@ -18,4 +18,6 @@ type Message struct {
 	Pid   dt.IntStr `json:"pid,omitempty"`   // 礼物 id
 	GFCnt dt.IntStr `json:"gfcnt,omitempty"` // 礼物个数
 	Hits  dt.IntStr `json:"hits,omitempty"`  // 礼物连击数
+	DRid  dt.IntStr `json:"drid,omitempty"`  // 爵位房间 id
+	Unk   string    `json:"unk,omitempty"`   // 爵位姓名
 }
