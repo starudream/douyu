@@ -97,6 +97,18 @@ func main() {
 				}
 				format := "进入 %" + length(msg.NN, 30) + "s |%3d| %" + length(nl, 4) + "s |"
 				logx.Infof(format, msg.NN, msg.Level, nl)
+			case "rnewbc":
+				if strconv.FormatInt(int64(msg.DRid), 10) != R {
+					continue
+				}
+				format := "续费 %" + length(msg.Unk, 30) + "s |%3d| %" + length(nl, 4) + "s |"
+				logx.Infof(format, msg.Unk, msg.Level, nl)
+			case "anbc":
+				if strconv.FormatInt(int64(msg.DRid), 10) != R {
+					continue
+				}
+				format := "开通 %" + length(msg.Unk, 30) + "s |%3d| %" + length(nl, 4) + "s |"
+				logx.Infof(format, msg.Unk, msg.Level, nl)
 			}
 		}
 	}()
