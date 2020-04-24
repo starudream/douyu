@@ -1,7 +1,7 @@
 # DouYu
 
 ![GithubAction](https://github.com/starudream/douyu/workflows/Go/badge.svg)
-![License](https://img.shields.io/badge/license-Apache%20License%202.0-blue)
+![License](https://img.shields.io/badge/License-Apache%20License%202.0-blue)
 
 ## Install
 
